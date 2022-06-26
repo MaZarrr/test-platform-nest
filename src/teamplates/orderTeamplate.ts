@@ -1,5 +1,5 @@
 export const transformEmailData = (formDataOrderDto: any) => {
-    console.log("formDataOrderDto______", formDataOrderDto);
+    // console.log("formDataOrderDto______", formDataOrderDto);
     
     const {
         name,
@@ -14,7 +14,7 @@ export const transformEmailData = (formDataOrderDto: any) => {
       } = formDataOrderDto
 
         const dataOrder =  products;
-        console.log("dataOrder___ products", dataOrder);
+        // console.log("dataOrder___ products", dataOrder);
         // console.log("formDelivery___", formDelivery);
         
         const orderList = products.map((elem: any) => {
@@ -77,8 +77,8 @@ export const transformEmailData = (formDataOrderDto: any) => {
         };
 
     return {
-        from: process.env.MAIL_FROM_EMAIL,
-        to: process.env.MAIL_FROM_TO,
+        from: "mazarar@yandex.ru",
+        to: process.env.EMAIL_TO,
         subject: `НОВЫЙ ЗАКАЗ`,
         html: `
              <div>

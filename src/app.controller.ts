@@ -10,9 +10,9 @@ export class AppController {
     return this.appService.getHello();
   }
 
-  @Post('svisni/send-order')
-  public sendOrder(@Body() formDataOrderDto: any): Promise<void> {
+  @Post()
+  public async sendOrder(@Body() formDataOrderDto: any): Promise<void> {
       console.log("formDataOrderDto___", formDataOrderDto);
-      return this.appService.sendOrder(formDataOrderDto);
+      return await this.appService.sendOrder(formDataOrderDto);
   }
 }
