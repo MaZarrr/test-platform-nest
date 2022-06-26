@@ -4,6 +4,11 @@ import { transformEmailData } from './teamplates/orderTeamplate';
 
 @Injectable()
 export class AppService {
+  constructor() {
+    SendGrid.setApiKey("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");
+  }
+
+
   getHello(): string {
     return 'Hello World!';
   }
