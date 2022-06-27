@@ -12,7 +12,7 @@ const optionsCors = {
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors(optionsCors);
-  await app.listen(3000);
+  await app.listen(3333, '0.0.0.0');
 }
 bootstrap();  
 
