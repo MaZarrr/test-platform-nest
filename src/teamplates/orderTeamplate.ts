@@ -1,6 +1,4 @@
 export const transformEmailData = (formDataOrderDto: any) => {
-    // console.log("formDataOrderDto______", formDataOrderDto);
-    
     const {
         name,
         phone,
@@ -13,10 +11,6 @@ export const transformEmailData = (formDataOrderDto: any) => {
         comments
       } = formDataOrderDto
 
-        const dataOrder =  products;
-        // console.log("dataOrder___ products", dataOrder);
-        // console.log("formDelivery___", formDelivery);
-        
         const orderList = products.map((elem: any) => {
             const isWokDescritp = elem.descriptionWok === '' ? "" : `<p style="color: #fff;"><b>Лапша: </b> ${elem.descriptionWok}`
             const isPizzazIng = elem.descriptionIngrideents === undefined ? "" : `<p style="color: #fff;"><b>Доп.Ингидеенты: </b> ${elem.descriptionIngrideents}`
@@ -61,8 +55,8 @@ export const transformEmailData = (formDataOrderDto: any) => {
           home,
           apartment,
           podezd,
-          etag,
-          kodDveri
+        //   etag,
+        //   kodDveri
         } = delivery;
 
           return `
@@ -70,14 +64,12 @@ export const transformEmailData = (formDataOrderDto: any) => {
             <p><b style="font-size: 18px">Населенный пункт: </b> ${adress}</p>
             <p><b style="font-size: 18px">Улица: </b> ${street}</p>
             <p><b style="font-size: 18px">Номер дома: </b> ${home}</p>
-            <p><b style="font-size: 18px">Номер квартиры: </b> ${apartment}</p>
-            <p><b style="font-size: 18px">Этаж: </b> ${etag}</p>
-            <p><b style="font-size: 18px">Код двери: ${kodDveri} / Подьезд:${podezd}</b> </p>
+            <p><b style="font-size: 18px">Номер квартиры: ${apartment} / Подьезд:${podezd}</b> </p>
         `
         };
 
     return {
-        from: "mazarar@yandex.ru",
+        from: process.env.EMAIL_FROM,
         to: process.env.EMAIL_TO,
         subject: `НОВЫЙ ЗАКАЗ`,
         html: `

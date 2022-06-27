@@ -12,7 +12,7 @@ export class AppController {
 
   @Post()
   public async sendOrder(@Body() formDataOrderDto: any): Promise<void> {
-      console.log("formDataOrderDto___", formDataOrderDto);
+      // console.log("formDataOrderDto___", formDataOrderDto);
       return await this.appService.sendOrder(formDataOrderDto);
   }
 }
