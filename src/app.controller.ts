@@ -15,4 +15,10 @@ export class AppController {
       // console.log("formDataOrderDto___", formDataOrderDto);
       return await this.appService.sendOrder(formDataOrderDto);
   }
+
+  @Post('sending')
+  public async sendMessageVK(@Body() formDataOrderDto: any): Promise<void> {
+    console.log("sending_formDataOrderDto", formDataOrderDto);
+   return this.appService.sendMessageVK(formDataOrderDto);
+  }
 }
