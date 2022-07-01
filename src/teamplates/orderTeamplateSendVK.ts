@@ -12,57 +12,57 @@ export const transformSocialData = (formDataOrderDto: any) => {
       } = formDataOrderDto
 
         const orderList = products.map((elem: any) => {
-            const isWokDescritp = elem.descriptionWok === '' ? "" : `Лапша: ${elem.descriptionWok}`
+            const isWokDescritp = elem.descriptionWok === '' ? "" : `-Лапша: ${elem.descriptionWok}`
             const isPizzazIng = elem.descriptionIngrideents === undefined ? "" : `Доп.Ингидеенты: ${elem.descriptionIngrideents}`
-            const isSizedPizza = elem.productSize === undefined ? "" : `Размер: ${elem.productSize}`
+            const isSizedPizza = elem.productSize === undefined ? "" : `-Размер: ${elem.productSize}`
             
-            if(isSizedPizza === "" && isPizzazIng === "" && isWokDescritp === "") {
-                return `
-                Toвар: ${elem.product}
-                Состав: ${elem.description}    
-                Штук: ${elem.count}
-                Цена: ${elem.total}
-               `
-            } else if(isSizedPizza !== "") {
-                return `
-                Toвар: ${elem.product}
-                Состав: ${elem.description}
-                ${isSizedPizza}    
-                Штук: ${elem.count}
-                Цена: ${elem.total}
-            `
+if(isSizedPizza === "" && isPizzazIng === "" && isWokDescritp === "") {
+return `
+-Название: ${elem.product}
+-Состав: ${elem.description}    
+-Штук: ${elem.count}
+-Цена: ${elem.total}
+`
+} else if(isSizedPizza !== "") {
+return `
+-Название: ${elem.product}
+-Состав: ${elem.description}
+-${isSizedPizza}    
+-Штук: ${elem.count}
+-Цена: ${elem.total}
+`
             } else if(isSizedPizza !== "" && isPizzazIng !== "") {
-                return `
-                    Toвар: ${elem.product}
-                    Состав: ${elem.description}
-                    ${isSizedPizza}
-                    ${isPizzazIng}   
-                    Штук: ${elem.count}
-                    Цена: ${elem.total}
-            `
+return `
+-Название: ${elem.product}
+Состав: ${elem.description}
+-${isSizedPizza}
+-${isPizzazIng}   
+-Штук: ${elem.count}
+-Цена: ${elem.total}
+`
             } else if(isWokDescritp !== "") {
-                return `
-                Toвар: ${elem.product}
-                Состав: ${elem.description}
-                ${isWokDescritp}   
-                Штук: ${elem.count}
-                Цена: ${elem.total}
-        `
-        }
-    });
+return `
+-Название: ${elem.product}
+-Состав: ${elem.description}
+${isWokDescritp}   
+-Штук: ${elem.count}
+-Цена: ${elem.total}
+`
+    }
+});
             
         const deliveryInfoTime = () => {
             if(typeof deliveryTime === 'string') {
-                return `Дата готовки: ${deliveryTime}`
+                return `>Дата готовки: ${deliveryTime}`
             }
             const { dateDelivery, timeDelivery } = deliveryTime;
-            return `Дата готовки/доставки: ${dateDelivery}
-             К какому времени доставить/приготовить: ${timeDelivery}
+            return `>Дата готовки/доставки: ${dateDelivery}
+             >К какому времени доставить/приготовить: ${timeDelivery}
             `
         };
         const deliveryInfo = () => {
             if(typeof delivery === 'string') {
-            return `Способ получения заказа: ${delivery}`
+            return `>Способ получения заказа: ${delivery}`
             }
             
         const {
@@ -76,13 +76,13 @@ export const transformSocialData = (formDataOrderDto: any) => {
         //  kodDveri
         } = delivery;
 
-          return `
-            Способ получения заказа: ${formDelivery}
-            Населенный пункт: ${adress}
-            Улица: ${street}
-            Номер дома: ${home}
-            Номер квартиры: ${apartment} / Подьезд: ${podezd}
-        `
+return `
+>Способ получения заказа: ${formDelivery}
+>Населенный пункт: ${adress}
+>Улица: ${street}
+>Номер дома: ${home}
+>Номер квартиры: ${apartment} / Подьезд: ${podezd}
+`
         };
 
         let currentDateTime = function (locale: string, prefix: string = '', suffix: string = '') {
@@ -97,9 +97,9 @@ export const transformSocialData = (formDataOrderDto: any) => {
                     day: 'numeric',
                     weekday: 'long',
                     timezone: 'UTC',
-                    hour: 'numeric',
-                    minute: 'numeric',
-                    second: 'numeric',
+                    // hour: 'numeric',
+                    // minute: 'numeric',
+                    // second: 'numeric',
                 },
                 result: '',
                 getDateString: function () {
@@ -109,24 +109,25 @@ export const transformSocialData = (formDataOrderDto: any) => {
         };
 
 
-        let today = currentDateTime('ru').getDateString();
-        return `
-        ====
-        📩НОВЫЙ ЗАКАЗ
-        ${today}
-        ====
-        Имя: ${name}
-        Телефон: ${phone} 
-        
-        Товары: ${orderList}
-        ${deliveryInfo()}
-        ${deliveryInfoTime()}
-        Приборы(палочки): ${chopsticks}
-        Сдача: ${sdacha}
-        Общая цена к оплате: ${totalPrice}
-        Комментарий к заказу: ${comments}
-        =======
-        Подтвердить заказ ${phone}
-        =======
-        `
+let today = currentDateTime('ru').getDateString();
+return `
+====
+📩НОВЫЙ ЗАКАЗ
+${today}
+====
+Имя: ${name}
+Телефон: ${phone} 
+
+>Товары: ${orderList}
+${deliveryInfo()}
+${deliveryInfoTime()}
+>Приборы(палочки): ${chopsticks}
+>Сдача: ${sdacha}
+>Общая цена к оплате: ${totalPrice}
+>Комментарий к заказу: ${comments}
+=======
+Подтвердить заказ ${phone}
+=======
+⛔⛔⛔⛔⛔⛔
+`
 };

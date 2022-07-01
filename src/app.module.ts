@@ -12,7 +12,6 @@ import { ConfigModule } from '@nestjs/config';
     }),
     MailerModule.forRoot({
       transport: `smtps://${process.env.EMAIL_FROM}:${process.env.EMAIL_API}@smtp.yandex.ru`,
-      // transport: `smtps://mazarar@yandex.ru:gqgdgwqzxrbaqaxm@smtp.yandex.ru`,
       defaults: {
         from: `"WebWork" <${process.env.EMAIL_FROM}>`,
       },
