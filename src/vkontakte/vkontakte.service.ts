@@ -36,6 +36,17 @@ export class VKontakteService {
       });
 
     }
+
+      
+    public async sendMessageVK(formDataOrderDto: any): Promise<void> {
+      const socialData = transformSocialData(formDataOrderDto);
+      this.botUser.sendMessage([
+        Number(process.env.USER_ONE),
+        // Number(process.env.USER_TWO),
+        // Number(process.env.USER_THREE),
+      ] as any, socialData);
+    }
+
   
     public async auth(auth: any, res: any) {
         try {
@@ -288,16 +299,6 @@ export class VKontakteService {
         .catch((error) => console.log(error)
         );
     }
-  
-    public async sendMessageVK(formDataOrderDto: any): Promise<void> {
-      const socialData = transformSocialData(formDataOrderDto);
-      await this.botUser.sendMessage([
-        Number(process.env.USER_ONE),
-        // Number(process.env.USER_TWO),
-        // Number(process.env.USER_THREE),
-      ] as any, socialData);
-    }
-
 
 
     // =================================
