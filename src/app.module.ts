@@ -4,6 +4,8 @@ import { AppService } from './app.service';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
 import { ConfigModule } from '@nestjs/config';
+import { VKontakteService } from './vkontakte/vkontakte.service';
+import { VKontakteController } from './vkontakte/vkontakte.controller';
 
 @Module({
   imports: [
@@ -24,7 +26,7 @@ import { ConfigModule } from '@nestjs/config';
       },
     }),
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController, VKontakteController],
+  providers: [AppService, VKontakteService],
 })
 export class AppModule {}
