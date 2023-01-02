@@ -1,7 +1,6 @@
 import { MailerService } from "@nestjs-modules/mailer";
 import { Injectable } from "@nestjs/common";
 import VkBot from "node-vk-bot-api";
-import { transformEmailData } from "src/teamplates/orderTeamplate";
 import { transformSocialData } from "src/teamplates/orderTeamplateSendVK";
 
 // speific params
@@ -26,27 +25,23 @@ type ExecuteAuthParams = {
 @Injectable()
 export class VKontakteService {
     public botUser: VkBot;
+    public botSendMessage: VkBot;
     public group_Id: number;
     
-    constructor(private readonly mailerService: MailerService) {
+    constructor() {
       this.group_Id = Number(process.env.GROUP_ID)
       this.botUser = new VkBot({
         token: process.env.API_USERS,
         group_id: this.group_Id,
       });
+      this.botSendMessage = new VkBot({
+        token: process.env.SOCIAL_API,
+        group_id: this.group_Id,
+      });
+
+
 
     }
-
-      
-    public async sendMessageVK(formDataOrderDto: any): Promise<void> {
-      const socialData = transformSocialData(formDataOrderDto);
-      this.botUser.sendMessage([
-        Number(process.env.USER_ONE),
-        // Number(process.env.USER_TWO),
-        // Number(process.env.USER_THREE),
-      ] as any, socialData);
-    }
-
   
     public async auth(auth: any, res: any) {
         try {
@@ -290,15 +285,25 @@ export class VKontakteService {
             }
         }
     }
-
-    public async sendOrder(formDataOrderDto: any): Promise<void> {
-      const emailData = transformEmailData(formDataOrderDto);
-      this.mailerService
-        .sendMail(emailData)
-        .then(() => {})
-        .catch((error) => console.log(error)
-        );
+  
+    public async sendMessageVK(formDataOrderDto: any): Promise<void> {
+      const socialData = transformSocialData(formDataOrderDto);
+      try {
+        // let botUser = new VkBot({
+        //   token: process.env.SOCIAL_API,
+        //   group_id: Number(process.env.GROUP_ID),
+        // });
+        await this.botSendMessage.sendMessage([
+          Number(process.env.USER_ONE),
+          Number(process.env.USER_TWO),
+          Number(process.env.USER_THREE),
+        ] as any, socialData);  
+      } catch (error) {
+        console.log("err___", error);
+      }
+      
     }
+
 
 
     // =================================
@@ -316,6 +321,11 @@ export class VKontakteService {
         }
         console.log("options___", options);
         
+        // let botUser = new VkBot({
+        //   token: process.env.API_USERS,
+        //   group_id: Number(process.env.GROUP_ID),
+        // });
+
         const response = await this.botUser.execute(method, options)
 
         return {

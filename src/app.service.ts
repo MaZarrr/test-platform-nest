@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { transformEmailData } from './teamplates/orderTeamplate';
-import { transformSocialData } from './teamplates/orderTeamplateSendVK';
 import { MailerService } from '@nestjs-modules/mailer';
-import VkBot from 'node-vk-bot-api';
 
 @Injectable()
 export class AppService {
