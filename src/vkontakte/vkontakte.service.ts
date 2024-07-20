@@ -2,6 +2,7 @@ import { MailerService } from "@nestjs-modules/mailer";
 import { Injectable } from "@nestjs/common";
 import VkBot from "node-vk-bot-api";
 import { transformSocialData } from "src/teamplates/orderTeamplateSendVK";
+import * as builder from 'xml2js';
 
 // speific params
 type ExecuteAuthParams = {
@@ -12,6 +13,7 @@ type ExecuteAuthParams = {
     album_ids?: string
     item_ids?: string
     offset?: number
+    extended?: number
   }
 }
       // public botGroup: VkBot;
@@ -72,11 +74,20 @@ export class VKontakteService {
           // console.log(".group_ids", response);
           // response.redirect(`https://oauth.vk.com/authorize?client_id=51438861&display=page&redirect_uri=https://svisni-sushi.ru&group_ids=161250465&scope=messages&response_type=code&v=5.194`)
 
+
+          // ===============================
+          // 25.04.2023
+          // регистрация через вконтакте
+          // https://oauth.vk.com/authorize?client_id=51626351&redirect_uri=http://127.0.0.1:3001/register&display=page&group_ids=&response_type=code&scope=groups&v=5.194
+          // https://oauth.vk.com/authorize?client_id=51626351&redirect_uri=http://localhost:4321/payments&group_ids=&scope=groups&v=5.199
         } catch (error) {
           console.log("ERROR", error);
           
         }
     }
+
+
+    // public async ge
 
     public async getGroupOrders(groupData: any): Promise<any> {
         try {
@@ -141,7 +152,8 @@ export class VKontakteService {
             isGroup: false
           }
         });
-
+        console.log("albumsLength_2_", albumsLength);
+        
         const albumsVisible = albumsAll.data.items.filter((item) => !item.is_hidden)
 
         return {
@@ -156,25 +168,154 @@ export class VKontakteService {
       }
     };
 
-    public async getProducts(props: any): Promise<any> {
+
+    public async generateYaml(albumsData: {count: number, isGroup: any}): Promise<{ok: boolean, data: any}> {
       try {
-        console.log("props___", props);
-        
-        const albums = await this.botExecute('market.getAlbumById', {
+        const albums = await this.botExecute('market.getAlbums', {
           params: {
-            album_ids: props.albumId,
+            count: 1,
             isGroup: false
           }
         });
+        const albumsLength = albums.data.count;
         
+        const albumsAll = await this.botExecute('market.getAlbums', {
+          params: {
+            count: albumsLength,
+            isGroup: false
+          }
+        });
+
+        let offer: Array<any> = [];
+        for (let item of albumsAll.data.items) {
+          // if(item.id == 6 || item.id == 4) {
+
+          const productsAlbum = await this.botExecute('market.get', {
+            params: {
+              // count: 1,
+              // album_id: 6,
+              count: item.count,
+              album_id: item.id,
+              isGroup: false,
+              need_variants: 1,
+              extended: 1,
+              v: 5.199
+            }
+          });
+          
+        productsAlbum.data.variants.forEach((variant, idx) => {
+          const variantData = {
+              $: { id: variant.id, available: 'true', ...(variant?.variants_grouping_id && { group_id: variant.variants_grouping_id }) },
+              price: parseInt(variant.price.text.replace(/\s/g, '')),
+              currencyId: variant.price.currency.name,
+              categoryId: variant.albums_ids,
+              name: variant.title,
+              description: variant.description,
+              ...( variant?.property_values && { param: variant.property_values.map((item: any) => {
+                  return {
+                    $: { name: item.property_name }, _: item.variant_name
+                  }
+              }) }),
+              picture: variant.photos.map((photo) => {
+                const findSizes = photo.sizes.find((item) => item.type === 'z' || item.type === 'w' || item.type === 'r');
+                if(findSizes) {
+                  return findSizes.url;
+                }
+              }).filter((item) => item !== undefined), // исправить &amp;
+            }
+            offer.push(variantData)
+          })
+        // }  
+        }
+          
+        const albumsVisible = albumsAll.data.items.filter((item) => !item.is_hidden)
+        const catalogData = {
+          yml_catalog: {
+            $: { date: this.getFormattedDate() },
+            shop: {
+              name: 'vk.com',
+              company: 'vk.com',
+              url: 'https://vk.com/',
+              currencies: {
+                currency: {
+                  $: { id: 'RUB', rate: '1' },
+                },
+              },
+              categories: {
+                category: albumsAll.data.items.map((item: any) => {
+                  return {
+                    $: { id: String(item.id) }, _: item.title
+                  }
+                })
+              },
+              offers: {
+                offer: offer
+              },
+            },
+          },
+        };
+
+        const xmlBuilder = new builder.Builder({ 
+          renderOpts: { 
+            pretty: true, 
+            indent: '  ',
+          },
+          xmldec: { 
+            version: '1.0', 
+            encoding: 'UTF-8', 
+            standalone: null,
+          },
+        });
+        const xmlString = xmlBuilder.buildObject(catalogData);
+        // const xmlString = xmlBuilder.create(catalogData, { encoding: 'UTF-8' }).end({ pretty: true });
+        // const modifiedXmlString = xmlString.replace(/&amp;/g, '&');
+        const fs = require('fs');
+        fs.writeFileSync('output.xml', xmlString);
+
+        return {
+          ok: true,
+          data: albumsVisible
+        }
+      } catch (error) {
+          return {
+            ok: false,
+            data: error
+          }
+      }
+    };
+
+
+
+    public async getProducts(props: any): Promise<any> {
+      try {
+        // const dataSlug = [{ slug: 'pizza', id: props.id }]
+        // const findDD = dataSlug.find((item) => item.slug == props.albumId)
+
+        console.log("props___", props);
+        const albums = await this.botExecute('market.getAlbumById', {
+          params: {
+            album_ids: props.data.albumId,
+            isGroup: false 
+          }
+        });
+        // console.log("albums__", albums);
+        
+        const data = albums.data.items[0];
+        // console.log("dara", data);
+        // console.log("datadata", data);
+        
+        // const findProductID = data.find((item) => item.id == props.albumId )
+        // const data = [{ title: props.name, id: props.id, categoryName: props.albumId }];
+        // console.log("findDD", findDD);
         const products = await this.botExecute('market.get', {
             params: {
               count: albums.data.items[0].count,
               isGroup: false,
-              album_id: String(props.albumId)
+              album_id: String(props.data.albumId,)
             }
       });
-
+      // // console.log("products__", products.data.items.map((item) => console.log(item)));
+      // console.log("products__2", products.data.items[4]);
         return {
           ok: true,
           data: products
@@ -187,54 +328,90 @@ export class VKontakteService {
       }
     };
 
-    public async getProduct({ productId } : { productId: string }): Promise<any> {
+    public async getProduct(id): Promise<any> {
     try {
-        console.log("getProduct__productId", productId);
-        
         const product = await this.botExecute('market.getById', {
           params: {
             isGroup: false,
-            item_ids: String(productId)
+            item_ids: -'161250465'+ '_' + String(id),
+            extended: 1
           }
         });
-        console.log("getProduct__product", product);
 
-        return {
-          ok: true,
-          data: product
+        if(product.ok) {
+          // console.log("getProduct__product", product.data.items);
+          return {
+            ok: true,
+            data: product.data.items
+          }
+        } else {
+          return {
+            ok: true,
+            data: 'Продукт не найдет'
+          }
         }
+
     } catch (error) {
-      return {
-        ok: false,
-        error
+        return {
+          ok: false,
+          error
+        }
       }
-    }
     };
     
     public async getAllProducts({ data }: any): Promise<any> {
       try {
         const albums = await this.getAlbums({ count: 1, isGroup: false });
-        const albumsAll = await this.getAlbums({ count: albums.data.data.count, isGroup: false });
-        const albumItems = albumsAll.data.data.items;
-        
+        const albumsAll = await this.getAlbums({ count: albums.data.length, isGroup: false });
+        const albumItems = albumsAll.data;  
         let allData: any = [];
-
+        console.log("albumItems_albumItems", albumItems);
+        
         for(let item of albumItems) {
-            const product = this.botExecute('market.get', {
-                params: {
-                  count: item.count,
-                  isGroup: false,
-                  album_id: String(item.id)
-                }
-          });
-          allData.push(product)
-        };
+          const product = await this.botExecute('market.get', {
+              params: {
+                count: item.count,
+                isGroup: false,
+                album_id: String(item.id)
+              }
+        });
+        // console.log("item__product", product);
+        const result = product.data;
+        allData.push({
+          ok: product.ok,
+          count: result.count, 
+          items: result.items, 
+          albumId: item.id, 
+          slugname: item.title 
+        })
+        // allData.push({...product, data: { ...product.data, albumId: item.id, slugTitle: item.title }})
+      };
+      
+      console.log("item__allData", allData);
 
-        const products = await Promise.all(allData);
-        return {
-          ok: true,
-          data: products
-        }
+      // albumItems - item 
+      // item__item {
+      //   id: 2,
+      //   owner_id: -161250465,
+      //   title: 'СЕТЫ РОЛЛОВ�',
+      //   count: 30,
+      //   updated_time: 1612796808,
+      //   is_main: false,
+      //   is_hidden: false,
+      //   photo: {
+      //     album_id: -53,
+      //     date: 1616861390,
+      //     id: 457250705,
+      //     owner_id: -161250465,
+      //     sizes: [ [Object], [Object], [Object], [Object] ],
+      //     text: '',
+      //     user_id: 100
+      //   }
+      // }
+      return {
+        ok: true,
+        data: allData
+      }
       } catch (error) {
           return {
               ok: false,
@@ -293,22 +470,47 @@ export class VKontakteService {
         //   token: process.env.SOCIAL_API,
         //   group_id: Number(process.env.GROUP_ID),
         // });
+        const orderPoint = formDataOrderDto.orderPoint;
+        const userOrderId = orderPoint === 'Валуйки' ? Number(process.env.USER_FOUR) : Number(process.env.USER_THREE);
         await this.botSendMessage.sendMessage([
           Number(process.env.USER_ONE),
           Number(process.env.USER_TWO),
-          Number(process.env.USER_THREE),
+          userOrderId
         ] as any, socialData);  
       } catch (error) {
-        console.log("err___", error);
+        console.log("err_sendmessageorder", error);
       }
-      
     }
 
-
+    public async sendMessageVacancy(formDataOrderDto: any): Promise<void> {
+      try {
+        const message = `
+          РАБОТА. НОВЫЙ ОТКЛИК НА ВАКАНСИЮ.
+          ${formDataOrderDto.date}
+          ___
+          Имя: ${formDataOrderDto.name}
+          ${formDataOrderDto.phone}
+          ${formDataOrderDto.vacancy}
+          ${formDataOrderDto.opyt}
+          ${formDataOrderDto.adress}
+          ${formDataOrderDto.med}
+          ${formDataOrderDto.week}
+          ===
+        `;
+        await this.botSendMessage.sendMessage([
+          Number(process.env.USER_ONE),
+          Number(process.env.USER_TWO),
+        ] as any, message);   
+      } catch (error) {
+        console.log("err_vacancy", error);
+      }
+    }
 
     // =================================
-    public async botExecute(method: string, { params }: ExecuteAuthParams) {
+    public async botExecute(method: string, { params }: any) {
+      // public async botExecute(method: string, { params }: ExecuteAuthParams) {
       try {
+        await new Promise((resolve) => setTimeout(resolve, 250));
         const { isGroup } = params;
         const spechificParams = {}
         const groupId = isGroup ? this.group_Id : -this.group_Id;
@@ -319,7 +521,7 @@ export class VKontakteService {
           [ownerOrUser]: groupId,
           ...params
         }
-        console.log("options___", options);
+        // console.log("options___", options);
         
         // let botUser = new VkBot({
         //   token: process.env.API_USERS,
@@ -357,9 +559,18 @@ export class VKontakteService {
         console.log("error", error);
         
       }
-   
-      
     }
+
+    getFormattedDate(): string {
+      const currentDate = new Date();
+      const year = currentDate.getFullYear();
+      const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+      const day = String(currentDate.getDate()).padStart(2, '0');
+      const hours = String(currentDate.getHours()).padStart(2, '0');
+      const minutes = String(currentDate.getMinutes()).padStart(2, '0');
   
+      const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}`;
+      return formattedDate;
+    }
 
 }
