@@ -10,7 +10,7 @@ export const transformSocialData = (formDataOrderDto: any) => {
         chopsticks,
         comments
       } = formDataOrderDto
-
+      
         const orderList = products.map((elem: any) => {
             const isWokDescritp = elem.descriptionWok === '' ? "" : `-Лапша: ${elem.descriptionWok}`
             const isPizzazIng = elem.descriptionIngrideents === undefined ? "" : `Доп.Ингидеенты: ${elem.descriptionIngrideents}`
@@ -40,7 +40,7 @@ return `
 -Штук: ${elem.count}
 -Цена: ${elem.total}
 `
-            } else if(isWokDescritp !== "") {
+} else if(isWokDescritp !== "") {
 return `
 -Название: ${elem.product}
 -Состав: ${elem.description}
@@ -97,8 +97,8 @@ return `
                     day: 'numeric',
                     weekday: 'long',
                     timezone: 'UTC',
-                    // hour: 'numeric',
-                    // minute: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
                     // second: 'numeric',
                 },
                 result: '',
@@ -110,13 +110,15 @@ return `
 
 
 let today = currentDateTime('ru').getDateString();
+let phoneEdit = '+7'+phone.slice(1);
+
 return `
 ====
 📩НОВЫЙ ЗАКАЗ
 ${today}
 ====
 Имя: ${name}
-Телефон: ${phone} 
+Телефон: ${phoneEdit} 
 
 >Товары: ${orderList}
 ${deliveryInfo()}
@@ -126,7 +128,7 @@ ${deliveryInfoTime()}
 >Общая цена к оплате: ${totalPrice}
 >Комментарий к заказу: ${comments}
 =======
-Подтвердить заказ ${phone}
+Подтвердить заказ ${phoneEdit}
 =======
 ⛔⛔⛔⛔⛔⛔
 `
