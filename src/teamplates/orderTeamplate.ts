@@ -13,7 +13,7 @@ export const transformEmailData = (formDataOrderDto: any) => {
 
         const orderList = products.map((elem: any) => {
             const isWokDescritp = elem.descriptionWok === '' ? "" : `<p style="color: #fff;"><b>Лапша: </b> ${elem.descriptionWok}`
-            const isPizzazIng = elem.descriptionIngrideents === undefined ? "" : `<p style="color: #fff;"><b>Доп.Ингидеенты: </b> ${elem.descriptionIngrideents}`
+            const iszIng = elem.descriptionIngrideents === undefined ? "" : `<p style="color: #fff;"><b>Доп.Ингидеенты: </b> ${elem.descriptionIngrideents}`
             const isSizedPizza = elem.productSize === undefined ? "" : `<p style="color: #fff;"><b>Размер: </b> ${elem.productSize}</p>`
             
             return `
@@ -22,12 +22,12 @@ export const transformEmailData = (formDataOrderDto: any) => {
                 <p style="color: #fff;"><b>Toвар: </b> ${elem.product}</p>
                 <p style="color: #fff;"><b>Состав: </b> ${elem.description}</p>
                 <div style="color: #fff;">${isSizedPizza}</div>
-                <div style="color: #fff;">${isPizzazIng}</div>
                 <div style="color: #fff;">${isWokDescritp}</div>      
                 <p style="color: #fff;"><b>Штук: </b> ${elem.count}</p>
                 <p style="color: #fff;"><b>Цена: </b> ${elem.total}</p>
-               </div>
-            `});
+                </div>
+                `});
+                // <div style="color: #fff;">${isPizzazIng}</div>
             
         const deliveryInfoTime = () => {
             if(typeof deliveryTime === 'string') {
